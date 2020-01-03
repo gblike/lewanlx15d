@@ -10,23 +10,30 @@ class Command():
     def message(self) -> List[int]:
         pass
 
-class BulkMove(Command):
-    pass
+class ServoAngle:
+    servo: int
+    angle: int
+
+    def __init__(self, servo: int, angle: int):
+        if angle > 65560 or 0 > angle:
+            raise "Angle value out of bounds [0,65560]"
+        self.servo = servo
+        self.angle = angle
 
 class Move(Command):
     COMMAND_CODE = 3
-    "number of servos, lower 8 bits time, upper 8 bits time,servo id,lower angle, higher angle"
-
-    def __init__(self, servo: int, time: int, angle_pos: int):
+    moves: List[ServoAngle]
+    time: int
+    def __init__(self, time, *moves: List[ServoAngle]):
         if time > 65560 or 0 > time:
             raise "Time value out of bounds [0,65560]"
-        if angle_pos > 65560 or 0 > angle_pos:
-            raise "Angle value out of bounds [0,65560]"
-        self.angle_pos = angle_pos
-        pass
+        self.time = time
+        self.moves = moves
 
-    def message(self) -> List[int]:
-        return [Move.COMMAND_CODE, 1, *byte_split(self.time), self.servo, *byte_split(self.angle_pos)]
+    def message(self):
+        params = [[move.servo, *byte_split(move.angle)] for move in self.moves]
+        flattened = [byte for group in params for byte in group]
+        return [Move.COMMAND_CODE, len(self.moves), *byte_split(self.time), *flattened]
 
 
 class SerialLike():
@@ -44,5 +51,7 @@ class ServosController():
 
     def run(self, command: Command):
         command_message = command.message()
-        message = [Servo.HEADER, Servo.HEADER, len(command_message)+1, command_message]
+        message = [ServosController.HEADER, ServosController.HEADER,
+                   len(command_message)+1,
+                   command_message]
         self._port.write(message)

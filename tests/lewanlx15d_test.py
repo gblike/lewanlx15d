@@ -1,4 +1,4 @@
-import lewanlx15d
+from lewanlx15d import *
 import unittest
 
 # Protocol from LSC Series Servo Controller Communication Protocol V1.2.pdf
@@ -6,27 +6,28 @@ import unittest
 
 class TestLewanlx15d(unittest.TestCase):
     def test_header(self):
-        message = [0x01,0x01]
-        self.assertEqual(message[0:2], [0x55,0x55])
+        pass
+        #message = [0x01,0x01]
+        #self.assertEqual(message[0:2], [0x55,0x55])
 
     def test_move_message(self):
         # Control the No.1 servo to turn to 2000 position within 1000ms
-        move = lewanlx15d.Move(1, 1000, 2000)
-        self.assertEqual([0x55, 0x55, 0x08, 0x03,0x01,0xE8,0x03,0x01,0xD0,0x07], move.message())
+        move = Move(1000, ServoAngle(1, 2000))
+        self.assertEqual([0x03,0x01,0xE8,0x03,0x01,0xD0,0x07], move.message())
 
 
     def test_bulk_move_message(self):
-        # Control No. 2 servo turn to 2000 position,
+        # Control No. 2 servo turn to 1200 position,
         # and No. 9 servo turn to 2300 position within 800ms
-        move = lewanlx15d.BulkMove()
-        expected = [0x55, 0x55, 0x0B, 0x03, 0x02, 0x20, 0x03, 0x02, 0xB0, 0x04 0x09, 0xFC, 0x08]
+        move = Move(800, ServoAngle(2, 1200), ServoAngle(9, 2300))
+        expected = [0x03, 0x02, 0x20, 0x03, 0x02, 0xB0, 0x04, 0x09, 0xFC, 0x08]
+        self.assertEqual(expected, move.message())
 
     def test_action_group_run(self):
         # Control the No. 8 action group to run once
         expected = [0x55, 0x55, 0x05, 0x06, 0x08, 0x01, 0x00]
         # Control the No. 2 action group to run unlimited times
         expected = [0x55, 0x55, 0x05, 0x06, 0x02, 0x00, 0x00]
-        pass
 
     def test_action_stop(self):
         # Stop the running action group
