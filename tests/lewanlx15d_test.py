@@ -58,16 +58,29 @@ class TestLewanlx15d(unittest.TestCase):
 
     def test_multiple_servo_read_pos(self):
         # Read the angle position values of servo No. 1, No. 2, No. 3, No. 4, No. 5, No. 6
-        expected = [0x55, 0x55, 0x09, 0x15, 0x06, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06]
+        expected = [0x15, 0x06, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06]
+        read = ReadServoPositions(1, 2, 3, 4, 5, 6)
+        self.assertEqual(expected, read.message())
 
         # All returned angle position values are 500
         returned = [0x55, 0x55, 0x15, 0x15, 0x06,
-                    0x01, 0x01, 0x0F4,
-                    0x02, 0x02, 0x0F4,
-                    0x03, 0x02, 0x0F4,
-                    0x04, 0x02, 0x0F4,
-                    0x05, 0x02, 0x0F4,
-                    0x06, 0x02, 0x0F4]
+                    0x01, 0xF4, 0x01,
+                    0x02, 0xF4, 0x01,
+                    0x03, 0xF4, 0x01,
+                    0x04, 0xF4, 0x01,
+                    0x05, 0xF4, 0x01,
+                    0x06, 0xF4, 0x01]
+
+        expected_return = [
+            ServoAngle(1, 500),
+            ServoAngle(2, 500),
+            ServoAngle(3, 500),
+            ServoAngle(4, 500),
+            ServoAngle(5, 500),
+            ServoAngle(6, 500)
+        ]
+
+        self.assertEqual(expected_return, read_command(returned[3:]))
 
     def test_action_group_run_response(self):
         # When the No. 8 action group is running and the number of times is 1
